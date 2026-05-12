@@ -19,6 +19,7 @@ Functions:
 # %% ---- 2026-05-12 ------------------------
 # Requirements and constants
 import json
+from rich import print
 from pathlib import Path
 from tqdm.auto import tqdm
 from PyPDF2 import PdfReader
@@ -64,6 +65,7 @@ def parse_content(path: Path):
         'title': title,
         'name': name,
         'fname': path.name,
+        'head': '\n'.join(split)
     }
 
     text = full_text.decode(encoding)
@@ -79,6 +81,7 @@ for p in tqdm(pdf_files):
     p_pdf = OUTPUT_DIR / p.name
     p_json = p_pdf.with_suffix('.json')
     p_txt = p_pdf.with_suffix('.txt')
+    d_further = OUTPUT_DIR / p.stem
 
     if not p_pdf.is_file():
         pdf = depasswd_pdf(p, password='sWl23g')
@@ -89,11 +92,25 @@ for p in tqdm(pdf_files):
         p_txt.is_file()
     ]):
         info, text = parse_content(p_pdf)
-        with open(p_pdf.with_suffix('.json'), 'w') as fp:
+        squeezed = ''.join([e.strip() for e in text.split() if e.strip()])
+        with open(p_json, 'w', encoding=encoding) as fp:
             json.dump(info, fp, ensure_ascii=False)
-        with open(p_pdf.with_suffix('.txt'), 'w', encoding=encoding) as fp:
-            squeezed = ''.join([e.strip() for e in text.split() if e.strip()])
+        with open(p_txt, 'w', encoding=encoding) as fp:
             fp.write(squeezed)
+
+    squeezed = open(p_txt, 'r', encoding=encoding).read()
+    print('--')
+    abstract = squeezed.split('中文摘要', 1)[1].split('英文摘要')[0]
+    cv = squeezed.split(
+        '4.申请人和主要参与者同年以不同专业技术职务（职称）申请或参与申请科学基金项目的情况（应详细说明原因）。', 1)[1].split('附件信息')[0]
+    info = {'abstract': abstract, 'cv': cv}
+    d_further.mkdir(parents=True, exist_ok=True)
+    with open(d_further / 'abstract.txt', 'w', encoding=encoding) as fp:
+        fp.write(info['abstract'])
+    with open(d_further / 'cv.txt', 'w', encoding=encoding) as fp:
+        fp.write(info['cv'])
+    print(info)
+
 
 logger.info('Done.')
 
