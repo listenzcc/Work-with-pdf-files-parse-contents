@@ -75,7 +75,8 @@ def parse_content(path: Path):
 
 # %% ---- 2026-05-12 ------------------------
 # Play ground
-pdf_files = sorted(Path('20260512').glob('*.pdf'))
+# pdf_files = sorted(Path('20260512').glob('*.pdf'))
+pdf_files = sorted(Path('20260722').glob('*.pdf'))
 
 for p in tqdm(pdf_files):
     p_pdf = OUTPUT_DIR / p.name
@@ -98,18 +99,21 @@ for p in tqdm(pdf_files):
         with open(p_txt, 'w', encoding=encoding) as fp:
             fp.write(squeezed)
 
-    squeezed = open(p_txt, 'r', encoding=encoding).read()
-    print('--')
-    abstract = squeezed.split('中文摘要', 1)[1].split('英文摘要')[0]
-    cv = squeezed.split(
-        '4.申请人和主要参与者同年以不同专业技术职务（职称）申请或参与申请科学基金项目的情况（应详细说明原因）。', 1)[1].split('附件信息')[0]
-    info = {'abstract': abstract, 'cv': cv}
-    d_further.mkdir(parents=True, exist_ok=True)
-    with open(d_further / 'abstract.txt', 'w', encoding=encoding) as fp:
-        fp.write(info['abstract'])
-    with open(d_further / 'cv.txt', 'w', encoding=encoding) as fp:
-        fp.write(info['cv'])
-    print(info)
+    try:
+        squeezed = open(p_txt, 'r', encoding=encoding).read()
+        print('--')
+        abstract = squeezed.split('中文摘要', 1)[1].split('英文摘要')[0]
+        cv = squeezed.split(
+            '4.申请人和主要参与者同年以不同专业技术职务（职称）申请或参与申请科学基金项目的情况（应详细说明原因）。', 1)[1].split('附件信息')[0]
+        info = {'abstract': abstract, 'cv': cv}
+        d_further.mkdir(parents=True, exist_ok=True)
+        with open(d_further / 'abstract.txt', 'w', encoding=encoding) as fp:
+            fp.write(info['abstract'])
+        with open(d_further / 'cv.txt', 'w', encoding=encoding) as fp:
+            fp.write(info['cv'])
+        print(info)
+    except Exception as err:
+        print(err)
 
 
 logger.info('Done.')
